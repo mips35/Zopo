@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zopo - Portal de Jogos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6d28d9;
+            --primary-dark: #5b21b6;
+            --secondary: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header-bg {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .game-card {
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(109, 40, 217, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .search-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .category-filter {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .category-filter.active {
+            background-color: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-bg shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-gamepad text-3xl text-purple-500 mr-3"></i>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-500 to-orange-400 bg-clip-text text-transparent">Zopo</h1>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="playTab" class="px-4 py-2 font-medium text-purple-400 border-b-2 border-purple-400">Jogar</button>
+                    <button id="adminTab" class="px-4 py-2 font-medium text-gray-400 hover:text-white">Admin</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Play Tab Content -->
+        <div id="playContent" class="fade-in">
+            <!-- Search and Filter Section -->
+            <div class="mb-8">
+                <div class="search-box rounded-lg p-4 mb-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Pesquisar jogos..." 
+                               class="w-full bg-gray-800 text-white px-4 py-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <div class="category-filter rounded-lg p-4 mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Categorias</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="category-btn active" data-category="all">Todos</button>
+                        <button class="category-btn" data-category="acao">Ação</button>
+                        <button class="category-btn" data-category="aventura">Aventura</button>
+                        <button class="category-btn" data-category="rpg">RPG</button>
+                        <button class="category-btn" data-category="estrategia">Estratégia</button>
+                        <button class="category-btn" data-category="esportes">Esportes</button>
+                        <button class="category-btn" data-category="luta">Luta</button>
+                        <button class="category-btn" data-category="puzzle">Puzzle</button>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 class="text-2xl font-bold mb-6">Jogos Disponíveis</h2>
+            <div id="gamesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Games will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Admin Tab Content (Initially hidden) -->
+        <div id="adminContent" class="hidden">
+            <!-- Password Protection -->
+            <div id="passwordSection" class="max-w-md mx-auto bg-gray-800 p-8 rounded-lg shadow-lg">
+                <div class="text-center mb-6">
+                    <i class="fas fa-lock text-4xl text-purple-500 mb-3"></i>
+                    <h2 class="text-2xl font-bold text-white">Acesso Administrativo</h2>
+                    <p class="text-gray-400 mt-2">Digite a senha para acessar o painel</p>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-300 mb-2">Senha:</label>
+                    <div class="relative">
+                        <input type="password" id="password" class="w-full bg-gray-700 text-white px-3 py-3 pl-10 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Digite a senha">
+                        <i class="fas fa-key absolute left-3 top-3.5 text-gray-400"></i>
+                    </div>
+                    <p id="passwordError" class="text-red-400 text-sm mt-1 hidden">
+                        <i class="fas fa-exclamation-circle mr-1"></i> Senha incorreta. Tente novamente.
+                    </p>
+                </div>
+                <button id="submitPassword" class="w-full btn-primary text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200 flex items-center justify-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Acessar
+                </button>
+            </div>
+            
+            <!-- Admin Panel (Initially hidden) -->
+            <div id="adminPanel" class="hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">
+                        <i class="fas fa-cog mr-2 text-purple-400"></i> Painel Administrativo
+                    </h2>
+                    <button id="backToPlay" class="flex items-center text-purple-400 hover:text-purple-300">
+                        <i class="fas fa-arrow-left mr-2"></i> Voltar para Jogar
+                    </button>
+                </div>
+                
+                <!-- Add New Game Form -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+                    <h3 class="text-xl font-semibold mb-4 text-white">
+                        <i class="fas fa-plus-circle mr-2 text-purple-400"></i> Adicionar Novo Jogo
+                    </h3>
+                    <form id="addGameForm" class="space-y-4">
+                        <div>
+                            <label for="gameName" class="block text-gray-300 mb-1">Nome do Jogo <span class="text-red-400">*</span></label>
+                            <input type="text" id="gameName" required 
+                                   class="w-full bg-gray-700 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label for="gameImage" class="block text-gray-300 mb-1">Link da Imagem</label>
+                            <input type="url" id="gameImage" 
+                                   class="w-full bg-gray-700 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                                   placeholder="https://exemplo.com/imagem.jpg">
+                            <p class="text-xs text-gray-400 mt-1">URL deve terminar com .jpg, .png, .gif, etc.</p>
+                        </div>
+                        <div>
+                            <label for="gameDescription" class="block text-gray-300 mb-1">Descrição <span class="text-red-400">*</span></label>
+                            <textarea id="gameDescription" required rows="3" 
+                                      class="w-full bg-gray-700 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                        </div>
+                        <div>
+                            <label for="gameLink" class="block text-gray-300 mb-1">Link do Jogo <span class="text-red-400">*</span></label>
+                            <input type="url" id="gameLink" required 
+                                   class="w-full bg-gray-700 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                                   placeholder="https://exemplo.com/jogo">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-1">Categorias <span class="text-red-400">*</span></label>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="gameCategories" value="acao" class="form-checkbox text-purple-500 rounded">
+                                    <span class="ml-2 text-gray-300">Ação</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="gameCategories" value="aventura" class="form-checkbox text-purple-500 rounded">
+                                    <span class="ml-2 text-gray-300">Aventura</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="gameCategories" value="rpg" class="form-checkbox text-purple-500 rounded">
+                                    <span class="ml-2 text-gray-300">RPG</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="gameCategories" value="estrategia" class="form-checkbox text-purple-500 rounded">
+                                    <span class="ml-2 text-gray-300">Estratégia</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="gameCategories" value="esportes" class="form-checkbox text-purple-500 rounded">
+                                    <span class="ml-2 text-gray-300">Esportes</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="gameCategories" value="luta" class="form-checkbox text-purple-500 rounded">
+                                    <span class="ml-2 text-gray-300">Luta</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="gameCategories" value="puzzle" class="form-checkbox text-purple-500 rounded">
+                                    <span class="ml-2 text-gray-300">Puzzle</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3 pt-2">
+                            <button type="submit" class="btn-primary text-white py-2 px-6 rounded-md hover:bg-purple-700 transition duration-200 flex items-center">
+                                <i class="fas fa-save mr-2"></i> Adicionar Jogo
+                            </button>
+                            <button type="reset" class="bg-gray-700 text-gray-300 py-2 px-6 rounded-md hover:bg-gray-600 transition duration-200 flex items-center">
+                                <i class="fas fa-broom mr-2"></i> Limpar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Manage Existing Games -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4 text-white">
+                        <i class="fas fa-list-ul mr-2 text-purple-400"></i> Gerenciar Jogos
+                    </h3>
+                    <div id="gamesList" class="space-y-4">
+                        <!-- Games will be listed here for management -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            <p>© 2023 Zopo - Todos os direitos reservados</p>
+            <div class="flex justify-center space-x-4 mt-3">
+                <a href="#" class="hover:text-purple-400"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="hover:text-purple-400"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="hover:text-purple-400"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="hover:text-purple-400"><i class="fab fa-discord"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Game categories
+        const categories = {
+            acao: { name: "Ação", color: "bg-red-500" },
+            aventura: { name: "Aventura", color: "bg-green-500" },
+            rpg: { name: "RPG", color: "bg-blue-500" },
+            estrategia: { name: "Estratégia", color: "bg-yellow-500" },
+            esportes: { name: "Esportes", color: "bg-orange-500" },
+            luta: { name: "Luta", color: "bg-pink-500" },
+            puzzle: { name: "Puzzle", color: "bg-indigo-500" }
+        };
+
+        // Sample games data with categories
+        let games = [
+            {
+                id: 1,
+                name: "Jogo de Ação",
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+                description: "Um emocionante jogo de ação com gráficos incríveis.",
+                link: "https://exemplo.com/jogo1",
+                categories: ["acao", "aventura"]
+            },
+            {
+                id: 2,
+                name: "RPG Épico",
+                image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+                description: "Explore mundos fantásticos neste RPG imersivo.",
+                link: "https://exemplo.com/jogo2",
+                categories: ["rpg", "aventura"]
+            },
+            {
+                id: 3,
+                name: "Jogo de Luta",
+                image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80",
+                description: "Batalhas intensas com diversos personagens.",
+                link: "https://exemplo.com/jogo3",
+                categories: ["luta"]
+            }
+        ];
+        
+        // DOM Elements
+        const playTab = document.getElementById('playTab');
+        const adminTab = document.getElementById('adminTab');
+        const playContent = document.getElementById('playContent');
+        const adminContent = document.getElementById('adminContent');
+        const passwordSection = document.getElementById('passwordSection');
+        const adminPanel = document.getElementById('adminPanel');
+        const passwordInput = document.getElementById('password');
+        const submitPassword = document.getElementById('submitPassword');
+        const passwordError = document.getElementById('passwordError');
+        const backToPlay = document.getElementById('backToPlay');
+        const addGameForm = document.getElementById('addGameForm');
+        const gamesContainer = document.getElementById('gamesContainer');
+        const gamesList = document.getElementById('gamesList');
+        const searchInput = document.getElementById('searchInput');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        
+        // Tab switching
+        playTab.addEventListener('click', () => {
+            playTab.classList.add('text-purple-400', 'border-b-2', 'border-purple-400');
+            playTab.classList.remove('text-gray-400');
+            adminTab.classList.add('text-gray-400');
+            adminTab.classList.remove('text-purple-400', 'border-b-2', 'border-purple-400');
+            playContent.classList.remove('hidden');
+            adminContent.classList.add('hidden');
+        });
+        
+        adminTab.addEventListener('click', () => {
+            adminTab.classList.add('text-purple-400', 'border-b-2', 'border-purple-400');
+            adminTab.classList.remove('text-gray-400');
+            playTab.classList.add('text-gray-400');
+            playTab.classList.remove('text-purple-400', 'border-b-2', 'border-purple-400');
+            playContent.classList.add('hidden');
+            adminContent.classList.remove('hidden');
+            
+            // Reset password form when switching to admin tab
+            passwordSection.classList.remove('hidden');
+            adminPanel.classList.add('hidden');
+            passwordInput.value = '';
+            passwordError.classList.add('hidden');
+        });
+        
+        // Password verification
+        submitPassword.addEventListener('click', () => {
+            if (passwordInput.value === 'Mips0036') {
+                // Correct password
+                passwordSection.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                renderGamesList();
+            } else {
+                // Incorrect password
+                passwordError.classList.remove('hidden');
+                passwordSection.classList.add('shake');
+                setTimeout(() => {
+                    passwordSection.classList.remove('shake');
+                }, 500);
+            }
+        });
+        
+        // Back to play button
+        backToPlay.addEventListener('click', () => {
+            playTab.click();
+        });
+        
+        // Add new game
+        addGameForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('gameName').value;
+            let image = document.getElementById('gameImage').value;
+            const description = document.getElementById('gameDescription').value;
+            const link = document.getElementById('gameLink').value;
+            
+            // If no image provided, use a placeholder
+            if (!image) {
+                image = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80';
+            }
+            
+            // Get selected categories
+            const categoryCheckboxes = document.querySelectorAll('input[name="gameCategories"]:checked');
+            const selectedCategories = Array.from(categoryCheckboxes).map(cb => cb.value);
+            
+            if (selectedCategories.length === 0) {
+                alert('Selecione pelo menos uma categoria!');
+                return;
+            }
+            
+            const newGame = {
+                id: Date.now(), // Simple unique ID
+                name,
+                image,
+                description,
+                link,
+                categories: selectedCategories
+            };
+            
+            games.push(newGame);
+            renderGames();
+            renderGamesList();
+            addGameForm.reset();
+            
+            // Show success message
+            alert('Jogo adicionado com sucesso!');
+        });
+        
+        // Render games in play section
+        function renderGames(filteredGames = null) {
+            const gamesToRender = filteredGames || games;
+            gamesContainer.innerHTML = '';
+            
+            if (gamesToRender.length === 0) {
+                gamesContainer.innerHTML = `
+                    <div class="col-span-full text-center py-10">
+                        <i class="fas fa-gamepad text-4xl text-gray-500 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-400">Nenhum jogo encontrado</h3>
+                        <p class="text-gray-500 mt-2">Tente ajustar sua pesquisa ou filtros</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            gamesToRender.forEach(game => {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card rounded-lg overflow-hidden shadow-lg';
+                gameCard.innerHTML = `
+                    <div class="h-48 overflow-hidden">
+                        <img src="${game.image}" alt="${game.name}" class="w-full h-full object-cover hover:scale-105 transition duration-300">
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold mb-2">${game.name}</h3>
+                        <div class="flex flex-wrap mb-3">
+                            ${game.categories.map(cat => 
+                                `<span class="category-badge ${categories[cat].color}">${categories[cat].name}</span>`
+                            ).join('')}
+                        </div>
+                        <p class="text-gray-400 mb-4">${game.description}</p>
+                        <a href="${game.link}" target="_blank" class="block w-full btn-primary text-white text-center py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200">
+                            <i class="fas fa-play mr-2"></i> Jogar
+                        </a>
+                    </div>
+                `;
+                gamesContainer.appendChild(gameCard);
+            });
+        }
+        
+        // Render games in admin management section
+        function renderGamesList() {
+            gamesList.innerHTML = '';
+            
+            if (games.length === 0) {
+                gamesList.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-gamepad text-4xl text-gray-500 mb-4"></i>
+                        <p class="text-gray-400">Nenhum jogo cadastrado ainda.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            games.forEach(game => {
+                const gameItem = document.createElement('div');
+                gameItem.className = 'border border-gray-700 rounded-lg p-4 bg-gray-700';
+                gameItem.innerHTML = `
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
+                        <div class="mb-2 md:mb-0">
+                            <h4 class="font-medium text-lg text-white">${game.name}</h4>
+                            <div class="flex flex-wrap mt-1">
+                                ${game.categories.map(cat => 
+                                    `<span class="category-badge ${categories[cat].color} text-xs">${categories[cat].name}</span>`
+                                ).join('')}
+                            </div>
+                            <p class="text-gray-400 text-sm mt-1">${game.description}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editGame(${game.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-md hover:bg-yellow-600 transition duration-200 text-sm flex items-center">
+                                <i class="fas fa-edit mr-1"></i> Editar
+                            </button>
+                            <button onclick="deleteGame(${game.id})" class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition duration-200 text-sm flex items-center">
+                                <i class="fas fa-trash-alt mr-1"></i> Remover
+                            </button>
+                            <button onclick="resetGame(${game.id})" class="bg-gray-600 text-gray-200 py-1 px-3 rounded-md hover:bg-gray-500 transition duration-200 text-sm flex items-center">
+                                <i class="fas fa-undo mr-1"></i> Resetar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center text-sm text-gray-400 space-y-1 sm:space-y-0 sm:space-x-4">
+                        <div><span class="font-medium text-gray-300">Imagem:</span> <a href="${game.image}" target="_blank" class="text-purple-400 hover:underline">${game.image.substring(0, 30)}${game.image.length > 30 ? '...' : ''}</a></div>
+                        <div><span class="font-medium text-gray-300">Link:</span> <a href="${game.link}" target="_blank" class="text-purple-400 hover:underline">${game.link.substring(0, 30)}${game.link.length > 30 ? '...' : ''}</a></div>
+                    </div>
+                `;
+                gamesList.appendChild(gameItem);
+            });
+        }
+        
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = document.querySelector('.category-btn.active').dataset.category;
+            
+            filterGames(searchTerm, selectedCategory);
+        });
+        
+        // Category filter functionality
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedCategory = btn.dataset.category;
+                
+                filterGames(searchTerm, selectedCategory);
+            });
+        });
+        
+        // Filter games based on search term and category
+        function filterGames(searchTerm, category) {
+            let filtered = games;
+            
+            // Filter by search term if one exists
+            if (searchTerm) {
+                filtered = filtered.filter(game => 
+                    game.name.toLowerCase().includes(searchTerm) || 
+                    game.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Filter by category if not "all"
+            if (category !== 'all') {
+                filtered = filtered.filter(game => 
+                    game.categories.includes(category)
+                );
+            }
+            
+            renderGames(filtered);
+        }
+        
+        // Game management functions
+        window.editGame = function(id) {
+            const game = games.find(g => g.id === id);
+            if (!game) return;
+            
+            const newName = prompt("Novo nome do jogo:", game.name);
+            if (newName !== null) game.name = newName;
+            
+            const newImage = prompt("Novo link da imagem:", game.image);
+            if (newImage !== null) game.image = newImage;
+            
+            const newDescription = prompt("Nova descrição:", game.description);
+            if (newDescription !== null) game.description = newDescription;
+            
+            const newLink = prompt("Novo link do jogo:", game.link);
+            if (newLink !== null) game.link = newLink;
+            
+            // Edit categories
+            let categoriesStr = "Categorias atuais: " + game.categories.join(", ") + "\n\n";
+            categoriesStr += "Digite novas categorias separadas por vírgula:\n";
+            categoriesStr += "Opções: acao, aventura, rpg, estrategia, esportes, luta, puzzle";
+            
+            const newCategories = prompt(categoriesStr, game.categories.join(","));
+            if (newCategories !== null) {
+                const cleanedCategories = newCategories.split(',')
+                    .map(c => c.trim().toLowerCase())
+                    .filter(c => Object.keys(categories).includes(c));
+                
+                if (cleanedCategories.length > 0) {
+                    game.categories = cleanedCategories;
+                }
+            }
+            
+            renderGames();
+            renderGamesList();
+        };
+        
+        window.deleteGame = function(id) {
+            if (confirm('Tem certeza que deseja remover este jogo permanentemente?')) {
+                games = games.filter(g => g.id !== id);
+                renderGames();
+                renderGamesList();
+            }
+        };
+        
+        window.resetGame = function(id) {
+            const game = games.find(g => g.id === id);
+            if (!game) return;
+            
+            game.name = "Novo Jogo";
+            game.image = "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80";
+            game.description = "Descrição do novo jogo";
+            game.link = "https://exemplo.com/novo-jogo";
+            game.categories = ["acao"];
+            
+            renderGames();
+            renderGamesList();
+        };
+        
+        // Initial render
+        renderGames();
+    </script>
+</body>
+</html>
